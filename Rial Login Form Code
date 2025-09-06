@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="hi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sposifty — Login</title>
+
+  <!-- Simple embedded style so you can open this single file directly -->
+  <style>
+    :root{ --bg:#f4f7fb; --card:#ffffff; --accent:#0b6cf0; --muted:#6b7280 }
+    *{box-sizing:border-box}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,'Noto Sans',Arial; background:var(--bg); margin:0; padding:32px; display:flex; align-items:center; justify-content:center; min-height:100vh}
+
+    .card{width:360px; background:var(--card); border-radius:12px; box-shadow:0 8px 24px rgba(12,18,35,0.06); padding:24px}
+    h1{font-size:20px; margin:0 0 12px}
+    p.lead{margin:0 0 18px; color:var(--muted); font-size:14px}
+
+    .field{margin-bottom:12px}
+    label{display:block; font-size:13px; margin-bottom:6px}
+    input[type="text"], input[type="password"]{width:100%; padding:10px 12px; border:1px solid #e6e9ef; border-radius:8px; font-size:14px}
+
+    .actions{display:flex; align-items:center; justify-content:space-between; margin-top:14px}
+    button{background:var(--accent); color:white; border:none; padding:10px 14px; border-radius:8px; cursor:pointer}
+    button.secondary{background:transparent; color:var(--accent); border:1px solid rgba(11,108,240,0.12)}
+
+    .muted{color:var(--muted); font-size:13px}
+    .error{color:#b91c1c; font-size:13px; margin-top:6px}
+
+    .small{font-size:13px}
+    .show-pass{font-size:13px; cursor:pointer; user-select:none}
+
+    .welcome{padding:18px; border-radius:8px; background:#f0f9ff; color:#084298; margin-top:12px}
+
+    @media (max-width:420px){body{padding:18px} .card{width:100%}}
+  </style>
+</head>
+<body>
+  <main class="card" role="main">
+    <h1>Sposifty — Login</h1>
+    <p class="lead">Apna username aur password daalein. (Ye example client-side validation dikhata hai.)</p>
+
+    <form id="loginForm" novalidate>
+      <div class="field">
+        <label for="username">Username</label>
+        <input id="username" name="username" type="text" autocomplete="username" placeholder="aapka username" required />
+        <div id="uError" class="error" aria-live="polite"></div>
+      </div>
+
+      <div class="field">
+        <label for="password">Password</label>
+        <div style="display:flex; gap:8px; align-items:center">
+          <input id="password" name="password" type="password" autocomplete="current-password" placeholder="password" required />
+          <button type="button" id="togglePass" class="secondary" title="Show/hide password">Show</button>
+        </div>
+        <div id="pError" class="error" aria-live="polite"></div>
+      </div>
+
+      <div class="actions">
+        <div class="small muted">Not registered? <a href="#" id="demoSign">Demo signup</a></div>
+        <div>
+          <button type="submit">Login</button>
+        </div>
+      </div>
+    </form>
+
+    <div id="msg" aria-live="polite"></div>
+  </main>
+
+  <script>
+    // Simple client-side login example
+    // NOTE: This is only for demo. Never do real auth on client-side in production.
+
+    const demoUsers = [
+      { username: 'suresh', password: '1234' },
+      { username: 'student', password: 'password' }
+    ];
+
+    const loginForm = document.getElementById('loginForm');
+    const usernameInput = document.getElementById('username');
+    const passwordInput = document.getElementById('password');
+    const uError = document.getElementById('uError');
+    const pError = document.getElementById('pError');
+    const msg = document.getElementById('msg');
+    const togglePass = document.getElementById('togglePass');
+    const demoSign = document.getElementById('demoSign');
+
+    function clearErrors(){ uError.textContent=''; pError.textContent=''; msg.textContent=''; }
+
+    togglePass.addEventListener('click', () => {
+      const t = passwordInput;
+      if(t.type === 'password'){ t.type='text'; togglePass.textContent='Hide'; }
+      else { t.type='password'; togglePass.textContent='Show'; }
+    });
+
+    demoSign.addEventListener('click', (e) => {
+      e.preventDefault();
+      usernameInput.value = 'student';
+      passwordInput.value = 'password';
+      usernameInput.focus();
+    });
+
+    loginForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      clearErrors();
+
+      const u = usernameInput.value.trim();
+      const p = passwordInput.value;
+
+      let ok = true;
+      if(u.length < 3){ uError.textContent = 'Username kam se kam 3 akshar ka hona chahiye'; ok = false; }
+      if(p.length < 4){ pError.textContent = 'Password kam se kam 4 akshar ka hona chahiye'; ok = false; }
+      if(!ok) return;
+
+      const found = demoUsers.find(x => x.username === u && x.password === p);
+
+      if(found){
+        // Simulate successful login
+        localStorage.setItem('sposifty_user', JSON.stringify({ username: found.username, loggedAt: Date.now() }));
+        msg.innerHTML = `<div class="welcome">Namaste <strong>${escapeHtml(found.username)}</strong> — aap safal roop se login ho gaye hain.</div>`;
+        loginForm.reset();
+      } else {
+        msg.innerHTML = `<div class="error">Galat username ya password — demo credentials try karein (student/password)</div>`;
+      }
+    });
+
+    // small helper to avoid XSS when injecting text
+    function escapeHtml(s){ return String(s).replace(/[&<>"']/g, (c)=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[c]); }
+  </script>
+</body>
+</html>
